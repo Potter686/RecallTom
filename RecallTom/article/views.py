@@ -67,3 +67,39 @@ def article_create(request):
         context = { 'article_post_form': article_post_form }
         # 返回模板
         return render(request, 'article/create.html', context)
+def article_delete(request,id):
+
+    # 获取删除文章的id
+    article = ArticlePost.objects.get(id=id)
+    article.delete()
+    return redirect("article:article_list")
+def article_safe_delete (request,id):
+    if request.method=="POST":
+        article  = ArticlePost.objects.get(id=id)
+        article.delete()
+        return redirect("article:article_list")
+    else:
+        return HttpResponse("请求错误")
+
+
+def article_update(request,id):
+    # 获取修改文章的id
+    article = ArticlePost.objects.get(id=id)
+    if request.method=='POST':
+        article_post_form = ArticlePostForm(data=request.POST)
+        # 判断文章是否瞒住需求
+        if article_post_form.is_valid():
+            # 将文章写入
+            article.title=request.POST['title']
+            article.body = request.POST['body']
+            article.save()
+            return redirect("article:article_detail",id=id)
+        else:
+            return HttpResponse("文章格式有误")
+    else:
+        # 创建表单类实例
+        article_post_form = ArticlePostForm()
+        # 赋值上下文，将 article 文章对象也传递进去，以便提取旧的内容
+        context = {'article': article, 'article_post_form': article_post_form}
+        # 将响应返回到模板中
+        return render(request, 'article/update.html', context)
